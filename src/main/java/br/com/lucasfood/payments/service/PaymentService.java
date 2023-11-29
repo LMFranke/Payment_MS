@@ -4,12 +4,13 @@ import br.com.lucasfood.payments.dto.DtoPayment;
 import br.com.lucasfood.payments.model.Payment;
 import br.com.lucasfood.payments.model.Status;
 import br.com.lucasfood.payments.repository.PaymentRepositoryInterface;
-import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class PaymentService {
