@@ -2,7 +2,9 @@ package br.com.lucasfood.payments.controller;
 
 import br.com.lucasfood.payments.dto.DtoPayment;
 import br.com.lucasfood.payments.service.PaymentService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -49,6 +51,21 @@ public class PaymentController {
     public ResponseEntity<DtoPayment> remove(@PathVariable @NotNull Long id) {
         service.removePayment(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/port")
+    public String returnPort(@Value("${local.server.port}") String port){
+        return String.format("Request answered by the instance running on the port %s", port);
+    }
+
+    @PatchMapping("/{id}/confirm")
+    @CircuitBreaker(name = "refreshRequest", fallbackMethod = "paymentAuthorizedWithPendingIntegration")
+    public void confirmPayment(@PathVariable @NotNull Long id) {
+        service.confirmPayment(id);
+    }
+
+    public void pagamentoAutorizadoComIntegracaoPendente(Long id, Exception e){
+        service.changeStatus(id);
     }
 
 }

@@ -1,6 +1,7 @@
 package br.com.lucasfood.payments.service;
 
 import br.com.lucasfood.payments.dto.DtoPayment;
+import br.com.lucasfood.payments.http.RequestClient;
 import br.com.lucasfood.payments.model.Payment;
 import br.com.lucasfood.payments.model.Status;
 import br.com.lucasfood.payments.repository.PaymentRepositoryInterface;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Optional;
 
 @Service
 public class PaymentService {
@@ -20,6 +22,9 @@ public class PaymentService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private RequestClient requestClient;
 
     public Page<DtoPayment> fetchAll(Pageable page) {
         return repository.findAll(page).map(p -> modelMapper.map(p, DtoPayment.class));
@@ -51,4 +56,29 @@ public class PaymentService {
         repository.deleteById(id );
     }
 
+    public void confirmPayment(Long id) {
+        Optional<Payment> payment = repository.findById(id);
+
+        if (payment.isEmpty()) {
+            throw new EntityNotFoundException();
+        }
+
+        payment.get().setStatus(Status.CONFIRM);
+        repository.save(payment.get());
+        requestClient.updatePayment(payment.get().getRequestId());
+
+    }
+
+    public void changeStatus(Long id) {
+
+        Optional<Payment> payment = repository.findById(id);
+
+        if (payment.isEmpty()) {
+            throw new EntityNotFoundException();
+        }
+
+        payment.get().setStatus(Status.CONFIRMED_BUT_NOT_INTEGRATED);
+        repository.save(payment.get());
+
+    }
 }
